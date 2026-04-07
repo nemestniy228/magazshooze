@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Оформление заказа</h1>
+<div style="padding: 10px 40px 30px; display: flex; gap: 40px; flex-wrap: wrap;">
+
+  <div style="flex: 1; min-width: 280px;">
+    <h2 style="margin-bottom: 16px;">Ваши товары</h2>
+    <div class="product-list">
+    {% for i in items %}
+    <p>{{ i['name'] }} × {{ i['quantity'] }}
+       <span>{{ i['price'] * i['quantity'] }} ₽</span></p>
+    {% endfor %}
+    </div>
+    <div style="padding: 16px; background:#111; color:#fff;
+         border-radius:12px; margin-top:12px; font-size:20px; font-weight:bold;">
+      Итого: {{ total }} ₽
+    </div>
+  </div>
+
+  <div style="flex: 1; min-width: 280px;">
+    <h2 style="margin-bottom: 16px;">Данные доставки</h2>
+    <form method="POST" style="padding: 0;">
+      <input type="text" name="full_name" placeholder="Имя и фамилия" required>
+      <input type="text" name="phone" placeholder="Телефон" required>
+      <input type="text" name="address" placeholder="Адрес доставки" required>
+      <select name="payment" style="padding:10px 14px; border:1px solid #ddd;
+              border-radius:8px; font-size:15px; width:100%; background:#fff;">
+        <option value="card">Картой онлайн</option>
+        <option value="cash">Наличными при получении</option>
+      </select>
+      <button type="submit"
+        style="background:#f0a500; color:#111; font-weight:bold;">
+        Подтвердить заказ →
+      </button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

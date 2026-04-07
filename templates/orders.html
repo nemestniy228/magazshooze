@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Мои заказы</h1>
+{% if orders %}
+<div class="product-list">
+{% for o in orders %}
+  <p>
+    Заказ №{{ o['id'] }}
+    <span style="color:#666; font-size:13px;">{{ o['created_at'][:10] }}</span>
+    <span style="background:#fef9c3; color:#854d0e; padding:3px 10px;
+         border-radius:20px; font-size:12px;">{{ o['status'] }}</span>
+    <a href="/order/{{ o['id'] }}">Подробнее</a>
+  </p>
+{% endfor %}
+</div>
+{% else %}
+<p style="padding: 20px 40px; color: #666;">У вас пока нет заказов</p>
+{% endif %}
+{% endblock %}

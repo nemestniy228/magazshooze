@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="padding: 60px 40px; text-align: center; max-width: 500px; margin: 0 auto;">
+  <div style="font-size: 64px; margin-bottom: 20px;">🎉</div>
+  <h1 style="color: #111; margin-bottom: 10px;">Заказ оформлен!</h1>
+  <p style="color: #666; margin-bottom: 30px;">
+    Заказ №{{ order['id'] }} принят. Мы свяжемся с вами для подтверждения.
+  </p>
+  <div class="product-list" style="text-align: left; margin-bottom: 20px;">
+  {% for i in items %}
+    <p>{{ i['name'] }} × {{ i['quantity'] }}
+       <span>{{ i['price'] * i['quantity'] }} ₽</span></p>
+  {% endfor %}
+  </div>
+  <div style="font-size:20px; font-weight:bold; margin-bottom:30px;">
+    Сумма: {{ total }} ₽
+  </div>
+  <a href="/" style="background:#111; color:#fff; padding:14px 30px;
+     border-radius:10px; text-decoration:none; font-weight:bold;">
+    Продолжить покупки
+  </a>
+</div>
+{% endblock %}

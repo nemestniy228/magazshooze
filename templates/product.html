@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="product-page">
+    <div class="product-img-box">
+        {% if p['photo'] %}
+        <img src="{{ p['photo'] }}" alt="{{ p['name'] }}">
+        {% else %}
+        👟
+        {% endif %}
+    </div>
+    <div class="product-info">
+        <h1>{{ p['name'] }}</h1>
+        <div class="product-price">{{ p['price']|int }} ₽</div>
+        {% if p['size'] %}
+        <div class="product-sizes">📏 Размеры: {{ p['size'] }}</div>
+        {% endif %}
+        {% if p['description'] %}
+        <p class="product-desc">{{ p['description'] }}</p>
+        {% endif %}
+        {% if session.user_id %}
+        <form method="POST" action="/cart/add/{{ p['id'] }}" style="margin:0;padding:0;">
+            <button type="submit" class="btn-add">🛒 Добавить в корзину</button>
+        </form>
+        {% else %}
+        <a href="/login" class="btn-add">Войди чтобы купить</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

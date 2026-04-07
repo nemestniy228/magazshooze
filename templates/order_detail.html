@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="padding: 30px 40px; max-width: 600px;">
+  <h1>Заказ №{{ order['id'] }}</h1>
+  <p style="color:#666; margin-bottom:20px;">Дата: {{ order['created_at'][:10] }} | Статус: {{ order['status'] }}</p>
+  <div class="product-list">
+  {% for i in items %}
+    <p>{{ i['name'] }} × {{ i['quantity'] }}
+       <span>{{ i['price'] * i['quantity'] }} ₽</span></p>
+  {% endfor %}
+  </div>
+  <div style="font-size:20px; font-weight:bold; margin:20px 0;">Итого: {{ total }} ₽</div>
+  <a href="/orders" style="background:#111; color:#fff; padding:12px 24px; border-radius:8px; text-decoration:none;">← Назад к заказам</a>
+</div>
+{% endblock %}

@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MagazShooze 👟</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .page { display: none; }
+        .page.active { display: block; }
+        nav button.nav-btn {
+            color: #bbb; font-size: 14px; font-weight: 500;
+            padding: 8px 16px; border-radius: 8px; transition: all 0.2s;
+            background: none; border: none; cursor: pointer; font-family: inherit;
+        }
+        nav button.nav-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        nav button.nav-cart {
+            background: #f0a500; color: #000; font-weight: 700;
+            padding: 9px 18px; border-radius: 10px; font-family: inherit;
+            border: none; cursor: pointer; font-size: 14px; transition: all 0.2s;
+        }
+        nav button.nav-cart:hover { background: #e09400; }
+        .cart-badge {
+            background: #dc2626; color: #fff; border-radius: 50%; width: 18px; height: 18px;
+            font-size: 11px; font-weight: 800; display: inline-flex; align-items: center;
+            justify-content: center; margin-left: 4px; vertical-align: middle;
+        }
+        .toast {
+            position: fixed; bottom: 30px; right: 30px; background: #111; color: #fff;
+            padding: 14px 22px; border-radius: 12px; font-size: 14px; font-weight: 600;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3); z-index: 9999;
+            transform: translateY(100px); opacity: 0; transition: all 0.4s;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .btn-back {
+            display: inline-block; background: #f0f0f0; color: #111; padding: 10px 20px;
+            border-radius: 10px; font-weight: 600; font-size: 14px; border: none;
+            cursor: pointer; font-family: inherit; margin-bottom: 24px;
+        }
+        .btn-back:hover { background: #e0e0e0; }
+        .product-page {
+            max-width: 1000px; margin: 0 auto; padding: 50px 40px;
+            display: flex; gap: 60px; align-items: flex-start;
+        }
+        .product-img-box {
+            width: 420px; min-width: 420px; height: 420px; background: #f5f5f5;
+            border-radius: 20px; overflow: hidden; display: flex; align-items: center;
+            justify-content: center; font-size: 100px;
+        }
+        .product-img-box img { width: 100%; height: 100%; object-fit: cover; }
+        .product-info { flex: 1; }
+        .product-info h1 { font-size: 32px; font-weight: 900; margin-bottom: 12px; }
+        .product-price { font-size: 36px; font-weight: 900; color: #f0a500; margin-bottom: 20px; }
+        .product-sizes { background: #f5f5f5; padding: 12px 16px; border-radius: 10px; font-size: 14px; color: #555; margin-bottom: 20px; display: inline-block; }
+        .product-desc { color: #666; line-height: 1.7; margin-bottom: 30px; font-size: 15px; }
+        .empty-state { text-align: center; padding: 80px 40px; color: #888; }
+        .empty-icon { font-size: 80px; margin-bottom: 20px; display: block; opacity: 0.5; }
+        .empty-state h2 { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: #555; }
+        .empty-state p { margin-bottom: 24px; }
+        .checkout-wrap { max-width: 1000px; margin: 0 auto; padding: 40px; }
+        .checkout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .checkout-box { background: #fff; border-radius: 20px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .checkout-box h2 { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
+        .checkout-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
+        .checkout-total { background: #111; color: #fff; border-radius: 12px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+        .checkout-total span:last-child { font-size: 22px; font-weight: 900; color: #f0a500; }
+        .success-page { min-height: calc(100vh - 68px); display: flex; align-items: center; justify-content: center; padding: 40px; }
+        .success-box { background: #fff; border-radius: 24px; padding: 60px 48px; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.1); }
+        .success-icon { font-size: 72px; margin-bottom: 20px; display: block; }
+        .success-box h1 { font-size: 32px; font-weight: 900; margin-bottom: 12px; }
+        .success-box p { color: #888; font-size: 16px; margin-bottom: 12px; }
+        .success-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+        .admin-wrap { max-width: 1100px; margin: 0 auto; padding: 40px; }
+        .admin-grid { display: grid; grid-template-columns: 380px 1fr; gap: 40px; align-items: flex-start; }
+        .admin-form-box { background: #fff; border-radius: 20px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: sticky; top: 90px; }
+        .admin-form-box h2 { font-size: 22px; font-weight: 800; margin-bottom: 24px; }
+        .admin-products h2 { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 24px; }
+        .admin-tab { padding: 8px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .admin-tab.active { background: #111; color: #fff; }
+        .admin-tab:not(.active) { background: #f1f5f9; color: #111; }
+        .admin-product-item { background: #fff; border-radius: 14px; padding: 16px 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .admin-product-emoji { width: 52px; height: 52px; border-radius: 10px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; flex-shrink: 0; }
+        .admin-product-emoji img { width: 100%; height: 100%; object-fit: cover; }
+        .admin-product-info { flex: 1; }
+        .admin-product-info .name { font-weight: 700; font-size: 15px; }
+        .admin-product-info .price { color: #f0a500; font-weight: 700; font-size: 14px; margin-top: 2px; }
+        .delete-btn { color: #dc2626; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 8px; border: 1.5px solid #fca5a5; transition: all 0.2s; background: none; cursor: pointer; font-family: inherit; }
+        .delete-btn:hover { background: #dc2626; color: #fff; }
+        .admin-order-row { background: #fff; border-radius: 12px; padding: 16px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .status-select { padding: 6px 12px; border-radius: 8px; border: 1.5px solid #e8e8e8; font-size: 13px; font-family: inherit; cursor: pointer; }
+        .order-card { background: #fff; border-radius: 14px; padding: 20px 24px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .order-id { font-weight: 800; font-size: 18px; }
+        .order-date { color: #888; font-size: 13px; margin-top: 3px; }
+        .badge { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .badge-pending { background: #fef9c3; color: #854d0e; }
+        .badge-done { background: #dcfce7; color: #166534; }
+        .order-link { color: #f0a500; font-weight: 600; font-size: 14px; background: none; border: none; cursor: pointer; font-family: inherit; }
+        .order-detail-wrap { max-width: 700px; margin: 0 auto; padding: 40px; }
+        .order-detail-item { background: #fff; border-radius: 12px; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .form-page { min-height: calc(100vh - 68px); display: flex; align-items: center; justify-content: center; padding: 40px; }
+        .form-box { background: #fff; border-radius: 20px; padding: 48px 40px; width: 100%; max-width: 420px; box-shadow: 0 8px 40px rgba(0,0,0,0.1); }
+        .form-box h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+        .form-box p { color: #888; margin-bottom: 28px; font-size: 15px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; color: #555; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 16px; border: 2px solid #e8e8e8; border-radius: 10px; font-size: 15px; background: #fafafa; transition: border-color 0.2s; box-sizing: border-box; font-family: inherit; }
+        .form-group input:focus { outline: none; border-color: #f0a500; background: #fff; }
+        .form-btn { width: 100%; padding: 14px; background: #111; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 4px; font-family: inherit; }
+        .form-btn:hover { background: #f0a500; color: #000; }
+        .form-error { background: #fee2e2; color: #dc2626; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; }
+        .form-link { text-align: center; margin-top: 20px; font-size: 14px; color: #888; }
+        .form-link a { color: #f0a500; font-weight: 600; text-decoration: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+<nav>
+    <span class="nav-logo" onclick="showPage('home')" style="cursor:pointer">Magaz<span>Shooze</span></span>
+    <div class="nav-links">
+        <button class="nav-btn" onclick="showPage('home')">Главная</button>
+        <button class="nav-cart" onclick="showPage('cart')">🛒 Корзина <span class="cart-badge" id="cartBadge">0</span></button>
+        <button class="nav-btn" id="ordersBtn" onclick="showPage('orders')" style="display:none">Мои заказы</button>
+        <button class="nav-btn" id="adminBtn" onclick="showPage('admin')" style="display:none">⚙️ Админка</button>
+        <button class="nav-btn" id="logoutBtn" onclick="doLogout()" style="display:none">Выйти (<span id="navUsername"></span>)</button>
+        <button class="nav-btn" id="loginBtn" onclick="showPage('login')">Войти</button>
+        <button class="nav-btn" id="registerBtn" onclick="showPage('register')">Регистрация</button>
+    </div>
+</nav>
+<div class="toast" id="toast"></div>
+
+<div class="page active" id="page-home">
+    <div class="hero">
+        <div>
+            <h1>Кроссовки <span>нового уровня</span></h1>
+            <p>Найди свою пару среди сотен моделей</p>
+        </div>
+        <div style="font-size:80px">👟</div>
+    </div>
+    <div class="page-header">
+        <h1>Каталог <span id="catalogCount"></span></h1>
+    </div>
+    <div class="catalog" id="catalogGrid"></div>
+</div>
+
+<div class="page" id="page-product">
+    <div class="product-page">
+        <div class="product-img-box" id="productImg">👟</div>
+        <div class="product-info">
+            <button class="btn-back" onclick="showPage('home')">← Назад</button>
+            <h1 id="productName"></h1>
+            <div class="product-price" id="productPrice"></div>
+            <div class="product-sizes" id="productSizes"></div>
+            <p class="product-desc" id="productDesc"></p>
+            <button class="btn-add" onclick="addToCart()">🛒 Добавить в корзину</button>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="page-cart">
+    <div class="page-wrap">
+        <div class="page-title">🛒 Корзина</div>
+        <div id="cartContent"></div>
+    </div>
+</div>
+
+<div class="page" id="page-checkout">
+    <div class="checkout-wrap">
+        <div class="page-title">Оформление заказа</div>
+        <div class="checkout-grid">
+            <div class="checkout-box">
+                <h2>Ваши товары</h2>
+                <div id="checkoutItems"></div>
+                <div class="checkout-total">
+                    <span>Итого</span>
+                    <span id="checkoutTotal"></span>
+                </div>
+            </div>
+            <div class="checkout-box">
+                <h2>Данные доставки</h2>
+                <div class="form-group"><label>Имя</label><input type="text" id="checkoutName" placeholder="Иван Иванов"></div>
+                <div class="form-group"><label>Телефон</label><input type="text" id="checkoutPhone" placeholder="+7 999 000-00-00"></div>
+                <div class="form-group"><label>Адрес</label><input type="text" id="checkoutAddress" placeholder="г. Москва, ул. Примерная, 1"></div>
+                <div class="form-group"><label>Оплата</label>
+                    <select id="checkoutPayment">
+                        <option value="card">💳 Картой</option>
+                        <option value="cash">💵 Наличными</option>
+                    </select>
+                </div>
+                <button class="btn-primary" style="width:100%;margin-top:10px" onclick="placeOrder()">Подтвердить заказ →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="page-success">
+    <div class="success-page">
+        <div class="success-box">
+            <span class="success-icon">🎉</span>
+            <h1>Заказ оформлен!</h1>
+            <p>Ваш заказ принят. Мы свяжемся с вами для подтверждения.</p>
+            <div class="success-actions">
+                <button class="btn-primary" onclick="showPage('home')">Продолжить покупки</button>
+                <button class="btn-secondary" onclick="showPage('orders')">Мои заказы</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="page-orders">
+    <div class="page-wrap">
+        <div class="page-title">📦 Мои заказы</div>
+        <div id="ordersContent"></div>
+    </div>
+</div>
+
+<div class="page" id="page-order-detail">
+    <div class="order-detail-wrap">
+        <button class="btn-back" onclick="showPage('orders')">← Назад к заказам</button>
+        <h1 id="orderDetailTitle" style="font-size:28px;font-weight:900;margin-bottom:8px"></h1>
+        <p id="orderDetailMeta" style="color:#888;margin-bottom:24px"></p>
+        <div id="orderDetailItems"></div>
+        <div class="cart-total" style="margin-top:16px">
+            <span class="cart-total-label">Итого</span>
+            <span class="cart-total-price" id="orderDetailTotal"></span>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="page-login">
+    <div class="form-page">
+        <div class="form-box">
+            <h1>Вход</h1>
+            <p>Войдите в свой аккаунт</p>
+            <div class="form-error" id="loginError" style="display:none"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="example@mail.ru"></div>
+            <div class="form-group"><label>Пароль</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+            <button class="form-btn" onclick="doLogin()">Войти</button>
+            <div class="form-link">Нет аккаунта? <a onclick="showPage('register')">Зарегистрироваться</a></div>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="page-register">
+    <div class="form-page">
+        <div class="form-box">
+            <h1>Регистрация</h1>
+            <p>Создайте новый аккаунт</p>
+            <div class="form-error" id="registerError" style="display:none"></div>
+            <div class="form-group"><label>Имя</label><input type="text" id="registerName" placeholder="Иван"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="registerEmail" placeholder="example@mail.ru"></div>
+            <div class="form-group"><label>Пароль</label><input type="password" id="registerPass" placeholder="••••••••"></div>
+            <button class="form-btn" onclick="doRegister()">Зарегистрироваться</button>
+            <div class="form-link">Уже есть аккаунт? <a onclick="showPage('login')">Войти</a></div>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="page-admin">
+    <div class="admin-wrap">
+        <div class="page-title" style="margin-bottom:20px">⚙️ Панель администратора</div>
+        <div class="admin-tabs">
+            <button class="admin-tab active" id="tabProducts" onclick="switchAdminTab('products')">🛍️ Товары</button>
+            <button class="admin-tab" id="tabOrders" onclick="switchAdminTab('orders')">📦 Заказы</button>
+        </div>
+        <div id="adminTabProducts">
+            <div class="admin-grid">
+                <div class="admin-form-box">
+                    <h2>Добавить товар</h2>
+                    <div class="form-group"><label>Название</label><input type="text" id="adminName" placeholder="Nike Air Max"></div>
+                    <div class="form-group"><label>Цена (₽)</label><input type="number" id="adminPrice" placeholder="12000"></div>
+                    <div class="form-group"><label>Размеры</label><input type="text" id="adminSize" placeholder="40,41,42,43"></div>
+                    <div class="form-group"><label>Фото</label><input type="file" id="adminPhoto" accept="image/*"></div>
+                    <div class="form-group"><label>Описание</label><textarea id="adminDesc" placeholder="Описание..." style="resize:vertical;min-height:80px;width:100%;padding:12px 16px;border:2px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit"></textarea></div>
+                    <button class="form-btn" onclick="adminAddProduct()">+ Добавить товар</button>
+                </div>
+                <div class="admin-products">
+                    <h2>Товары (<span id="adminProductCount">0</span> шт)</h2>
+                    <div id="adminProductList"></div>
+                </div>
+            </div>
+        </div>
+        <div id="adminTabOrders" style="display:none">
+            <div id="adminOrdersList"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentUser = null;
+let currentProductId = null;
+let cartItems = [];
+let allOrders = [];
+
+async function api(url, method='GET', body=null) {
+    const opts = { method, headers: {'Content-Type': 'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(url, opts);
+    return r.json();
+}
+
+function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    window.scrollTo(0, 0);
+    if (page === 'home') loadCatalog();
+    if (page === 'cart') loadCart();
+    if (page === 'orders') loadOrders();
+    if (page === 'admin') loadAdmin();
+    if (page === 'checkout') renderCheckout();
+}
+
+function updateNav() {
+    const in_ = !!currentUser;
+    document.getElementById('loginBtn').style.display = in_ ? 'none' : '';
+    document.getElementById('registerBtn').style.display = in_ ? 'none' : '';
+    document.getElementById('logoutBtn').style.display = in_ ? '' : 'none';
+    document.getElementById('ordersBtn').style.display = in_ ? '' : 'none';
+    document.getElementById('adminBtn').style.display = (in_ && currentUser.role === 'admin') ? '' : 'none';
+    if (in_) document.getElementById('navUsername').textContent = currentUser.name;
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show';
+    setTimeout(() => t.className = 'toast', 3000);
+}
+
+function updateCartBadge() {
+    const total = cartItems.reduce((s, i) => s + i.quantity, 0);
+    document.getElementById('cartBadge').textContent = total;
+}
+
+async function loadCatalog() {
+    const products = await api('/api/products');
+    document.getElementById('catalogCount').textContent = products.length + ' товаров';
+    document.getElementById('catalogGrid').innerHTML = products.map(p => `
+        <div class="card">
+            <div class="card-img-wrap">
+                ${p.photo ? `<img src="${p.photo}" alt="${p.name}">` : '👟'}
+            </div>
+            <div class="card-body">
+                <h3>${p.name}</h3>
+                <div class="card-price">${Number(p.price).toLocaleString()} ₽</div>
+                <div class="card-size">Размеры: ${p.size || '—'}</div>
+                <button class="card-btn" onclick="openProduct(${p.id})">Подробнее</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function openProduct(id) {
+    const products = await api('/api/products');
+    const p = products.find(x => x.id === id);
+    currentProductId = id;
+    document.getElementById('productName').textContent = p.name;
+    document.getElementById('productPrice').textContent = Number(p.price).toLocaleString() + ' ₽';
+    document.getElementById('productSizes').textContent = '📏 Размеры: ' + (p.size || '—');
+    document.getElementById('productDesc').textContent = p.description || '';
+    const imgBox = document.getElementById('productImg');
+    imgBox.innerHTML = p.photo ? `<img src="${p.photo}" alt="${p.name}">` : '👟';
+    showPage('product');
+}
+
+async function addToCart() {
+    if (!currentUser) { showPage('login'); return; }
+    await api(`/api/cart/add/${currentProductId}`, 'POST');
+    cartItems = await api('/api/cart');
+    updateCartBadge();
+    showToast('✅ Товар добавлен в корзину!');
+}
+
+async function loadCart() {
+    cartItems = await api('/api/cart');
+    updateCartBadge();
+    const el = document.getElementById('cartContent');
+    if (!currentUser) {
+        el.innerHTML = `<div class="empty-state"><span class="empty-icon">🔐</span><h2>Войдите в аккаунт</h2><p>Чтобы видеть корзину</p><button class="btn-primary" onclick="showPage('login')">Войти</button></div>`;
+        return;
+    }
+    if (cartItems.length === 0) {
+        el.innerHTML = `<div class="empty-state"><span class="empty-icon">🛒</span><h2>Корзина пуста</h2><p>Добавьте что-нибудь из каталога</p><button class="btn-primary" onclick="showPage('home')">В каталог</button></div>`;
+        return;
+    }
+    const total = cartItems.reduce((s, i) => s + i.price * i.quantity, 0);
+    el.innerHTML = cartItems.map(i => `
+        <div class="cart-item">
+            <div class="cart-item-left">
+                <div class="cart-item-name">${i.name}</div>
+                <div class="cart-item-qty">${i.quantity} шт.</div>
+            </div>
+            <div class="cart-item-right">
+                <div class="cart-item-price">${(i.price * i.quantity).toLocaleString()} ₽</div>
+                <button class="cart-item-remove" onclick="removeFromCart(${i.id})">✕ Удалить</button>
+            </div>
+        </div>
+    `).join('') + `
+        <div class="cart-total">
+            <span class="cart-total-label">Итого к оплате</span>
+            <span class="cart-total-price">${total.toLocaleString()} ₽</span>
+        </div>
+        <div class="cart-actions">
+            <button class="btn-primary" onclick="showPage('checkout')">Оформить заказ →</button>
+            <button class="btn-secondary" onclick="showPage('home')">Продолжить покупки</button>
+        </div>
+    `;
+}
+
+async function removeFromCart(id) {
+    await api(`/api/cart/remove/${id}`, 'POST');
+    cartItems = await api('/api/cart');
+    updateCartBadge();
+    loadCart();
+    showToast('🗑️ Товар удалён');
+}
+
+function renderCheckout() {
+    const el = document.getElementById('checkoutItems');
+    const total = cartItems.reduce((s, i) => s + i.price * i.quantity, 0);
+    el.innerHTML = cartItems.map(i => `
+        <div class="checkout-item">
+            <span>${i.name} × ${i.quantity}</span>
+            <span style="font-weight:700;color:#f0a500">${(i.price * i.quantity).toLocaleString()} ₽</span>
+        </div>
+    `).join('');
+    document.getElementById('checkoutTotal').textContent = total.toLocaleString() + ' ₽';
+}
+
+async function placeOrder() {
+    const name = document.getElementById('checkoutName').value.trim();
+    const phone = document.getElementById('checkoutPhone').value.trim();
+    const address = document.getElementById('checkoutAddress').value.trim();
+    if (!name || !phone || !address) { showToast('⚠️ Заполните все поля!'); return; }
+    const res = await api('/api/checkout', 'POST');
+    if (res.ok) {
+        cartItems = [];
+        updateCartBadge();
+        showPage('success');
+    } else {
+        showToast('❌ Ошибка оформления');
+    }
+}
+
+async function loadOrders() {
+    if (!currentUser) {
+        document.getElementById('ordersContent').innerHTML = `<div class="empty-state"><span class="empty-icon">🔐</span><h2>Войдите в аккаунт</h2><button class="btn-primary" onclick="showPage('login')">Войти</button></div>`;
+        return;
+    }
+    allOrders = await api('/api/orders');
+    const el = document.getElementById('ordersContent');
+    if (allOrders.length === 0) {
+        el.innerHTML = `<div class="empty-state"><span class="empty-icon">📦</span><h2>Заказов пока нет</h2><p>Оформите первый заказ!</p><button class="btn-primary" onclick="showPage('home')">В каталог</button></div>`;
+        return;
+    }
+    el.innerHTML = allOrders.map(o => `
+        <div class="order-card">
+            <div>
+                <div class="order-id">Заказ №${o.id}</div>
+                <div class="order-date">${o.created_at ? o.created_at.slice(0,10) : ''}</div>
+            </div>
+            <span class="badge ${o.status === 'done' ? 'badge-done' : 'badge-pending'}">${o.status === 'done' ? '✅ Выполнен' : '⏳ В обработке'}</span>
+            <button class="order-link" onclick="openOrder(${o.id})">Подробнее →</button>
+        </div>
+    `).join('');
+}
+
+function openOrder(id) {
+    const o = allOrders.find(x => x.id === id);
+    document.getElementById('orderDetailTitle').textContent = 'Заказ №' + o.id;
+    document.getElementById('orderDetailMeta').textContent = `Дата: ${o.created_at ? o.created_at.slice(0,10) : ''} · ${o.status === 'done' ? 'Выполнен' : 'В обработке'}`;
+    document.getElementById('orderDetailItems').innerHTML = o.items.map(i => `
+        <div class="order-detail-item">
+            <span>${i.name} × ${i.quantity}</span>
+            <span style="font-weight:700;color:#f0a500">${(i.price * i.quantity).toLocaleString()} ₽</span>
+        </div>
+    `).join('');
+    const total = o.items.reduce((s, i) => s + i.price * i.quantity, 0);
+    document.getElementById('orderDetailTotal').textContent = total.toLocaleString() + ' ₽';
+    showPage('order-detail');
+}
+
+async function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    const errEl = document.getElementById('loginError');
+    const res = await api('/api/login', 'POST', {email, password: pass});
+    if (res.ok) {
+        currentUser = {name: res.name, role: res.role};
+        errEl.style.display = 'none';
+        updateNav();
+        cartItems = await api('/api/cart');
+        updateCartBadge();
+        showToast('👋 Добро пожаловать, ' + res.name + '!');
+        showPage('home');
+    } else {
+        errEl.textContent = res.error;
+        errEl.style.display = 'block';
+    }
+}
+
+async function doRegister() {
+    const name = document.getElementById('registerName').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const pass = document.getElementById('registerPass').value;
+    const errEl = document.getElementById('registerError');
+    if (!name || !email || !pass) { errEl.textContent = 'Заполните все поля'; errEl.style.display = 'block'; return; }
+    const res = await api('/api/register', 'POST', {name, email, password: pass});
+    if (res.ok) {
+        currentUser = {name: res.name, role: 'user'};
+        errEl.style.display = 'none';
+        updateNav();
+        showToast('🎉 Регистрация успешна!');
+        showPage('home');
+    } else {
+        errEl.textContent = res.error;
+        errEl.style.display = 'block';
+    }
+}
+
+async function doLogout() {
+    await api('/api/logout', 'POST');
+    currentUser = null;
+    cartItems = [];
+    updateCartBadge();
+    updateNav();
+    showToast('👋 Вы вышли из аккаунта');
+    showPage('home');
+}
+
+async function loadAdmin() {
+    if (!currentUser || currentUser.role !== 'admin') return;
+    const products = await api('/api/products');
+    document.getElementById('adminProductCount').textContent = products.length;
+    document.getElementById('adminProductList').innerHTML = products.map(p => `
+        <div class="admin-product-item">
+            <div class="admin-product-emoji">${p.photo ? `<img src="${p.photo}">` : '👟'}</div>
+            <div class="admin-product-info">
+                <div class="name">${p.name}</div>
+                <div class="price">${Number(p.price).toLocaleString()} ₽</div>
+            </div>
+            <button class="delete-btn" onclick="adminDeleteProduct(${p.id})">Удалить</button>
+        </div>
+    `).join('');
+}
+
+async function adminAddProduct() {
+    const name = document.getElementById('adminName').value.trim();
+    const price = document.getElementById('adminPrice').value;
+    const size = document.getElementById('adminSize').value.trim();
+    const desc = document.getElementById('adminDesc').value.trim();
+    const photo = document.getElementById('adminPhoto').files[0];
+    if (!name || !price) { showToast('⚠️ Заполните название и цену!'); return; }
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('price', price);
+    formData.append('size', size);
+    formData.append('description', desc);
+    if (photo) formData.append('photo', photo);
+    await fetch('/admin', { method: 'POST', body: formData });
+    document.getElementById('adminName').value = '';
+    document.getElementById('adminPrice').value = '';
+    document.getElementById('adminSize').value = '';
+    document.getElementById('adminDesc').value = '';
+    document.getElementById('adminPhoto').value = '';
+    loadAdmin();
+    showToast('✅ Товар добавлен!');
+}
+
+async function adminDeleteProduct(id) {
+    await api(`/api/admin/products/delete/${id}`, 'POST');
+    loadAdmin();
+    showToast('🗑️ Товар удалён');
+}
+
+function switchAdminTab(tab) {
+    document.getElementById('adminTabProducts').style.display = tab === 'products' ? '' : 'none';
+    document.getElementById('adminTabOrders').style.display = tab === 'orders' ? '' : 'none';
+    document.getElementById('tabProducts').className = 'admin-tab' + (tab === 'products' ? ' active' : '');
+    document.getElementById('tabOrders').className = 'admin-tab' + (tab === 'orders' ? ' active' : '');
+    if (tab === 'orders') loadAdminOrders();
+}
+
+async function loadAdminOrders() {
+    const orders = await api('/api/orders/all');
+    const el = document.getElementById('adminOrdersList');
+    if (orders.length === 0) {
+        el.innerHTML = '<div class="empty-state"><span class="empty-icon">📦</span><h2>Заказов пока нет</h2></div>';
+        return;
+    }
+    el.innerHTML = orders.map(o => `
+        <div class="admin-order-row">
+            <div>
+                <div style="font-weight:800">Заказ №${o.id} — ${o.user_name}</div>
+                <div style="color:#888;font-size:13px">${o.created_at ? o.created_at.slice(0,10) : ''} · ${o.items.map(i=>i.name).join(', ')} · ${o.items.reduce((s,i)=>s+i.price*i.quantity,0).toLocaleString()} ₽</div>
+            </div>
+            <select class="status-select" onchange="changeOrderStatus(${o.id}, this.value)">
+                <option value="pending" ${o.status==='pending'?'selected':''}>⏳ В обработке</option>
+                <option value="done" ${o.status==='done'?'selected':''}>✅ Выполнен</option>
+            </select>
+        </div>
+    `).join('');
+}
+
+async function changeOrderStatus(id, status) {
+    await api(`/api/orders/status/${id}`, 'POST', {status});
+    showToast('📦 Статус обновлён');
+}
+
+// Инициализация — проверяем сессию
+(async () => {
+    const me = await api('/api/me');
+    if (me) {
+        currentUser = me;
+        updateNav();
+        cartItems = await api('/api/cart');
+        updateCartBadge();
+    }
+    loadCatalog();
+})();
+</script>
+</body>
+</html>

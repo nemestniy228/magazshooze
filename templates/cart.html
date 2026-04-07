@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if items %}
+<div class="page-wrap">
+    <div class="page-title">🛒 Корзина</div>
+
+    {% for i in items %}
+    <div class="cart-item">
+        <div class="cart-item-left">
+            <div class="cart-item-name">{{ i['name'] }}</div>
+            <div class="cart-item-qty">{{ i['quantity'] }} шт.</div>
+        </div>
+        <div class="cart-item-right">
+            <div class="cart-item-price">{{ (i['price'] * i['quantity'])|int }} ₽</div>
+            <a href="/cart/remove/{{ i['id'] }}" class="cart-item-remove">✕ Удалить</a>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="cart-total">
+        <span class="cart-total-label">Итого к оплате</span>
+        <span class="cart-total-price">{{ total|int }} ₽</span>
+    </div>
+
+    <div class="cart-actions">
+        <a href="/checkout" class="btn-primary">Оформить заказ →</a>
+        <a href="/" class="btn-secondary">Продолжить покупки</a>
+    </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+    <span class="empty-icon">🛒</span>
+    <h2>Корзина пуста</h2>
+    <p>Добавьте что-нибудь из каталога</p>
+    <a href="/" class="btn-primary">Перейти в каталог</a>
+</div>
+{% endif %}
+
+{% endblock %}
